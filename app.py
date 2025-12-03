@@ -8,7 +8,7 @@ import time
 # --- PENGATURAN HALAMAN DAN JUDUL ---
 st.set_page_config(
     page_title="Prediksi Sindrom Metabolik (MetS) Stacking Model",
-    layout="centered"
+    layout="wide"
 )
 st.title("🔬 Prediksi Sindrom Metabolik (MetS)")
 st.markdown("Aplikasi Web Sederhana Berbasis Model Stacking (RF + MLP + LR)")
@@ -91,12 +91,12 @@ with col1:
     # Jenis_Kelamin harus sudah dalam format ENCODED (0 atau 1)
     # 1 untuk Wanita, 0 untuk Pria (berdasarkan asumsi data Anda)
     user_input_dict['Jenis_Kelamin'] = st.selectbox("Jenis Kelamin", options=[0, 1], format_func=lambda x: "Wanita (1)" if x == 1 else "Pria (0)")
-    user_input_dict['Height'] = st.number_input("Height (m)", min_value=1.00, max_value=2.50, value=1.65, step=0.01)
-    user_input_dict['Weight'] = st.number_input("Weight (kg)", min_value=30.0, max_value=200.0, value=65.0, step=0.1)
+    user_input_dict['Height'] = st.number_input("Tinggi Badan (m)", min_value=1.00, max_value=2.50, value=1.65, step=0.01)
+    user_input_dict['Weight'] = st.number_input("Berat Badan (kg)", min_value=30.0, max_value=200.0, value=65.0, step=0.1)
 
 # Input di Kolom 2
 with col2:
-    user_input_dict['Waist Measurement'] = st.number_input("Waist Measurement (cm)", min_value=50.0, max_value=150.0, value=90.0, step=0.1)
+    user_input_dict['Waist Measurement'] = st.number_input("Lingkar Pinggang (cm)", min_value=50.0, max_value=150.0, value=90.0, step=0.1)
     user_input_dict['Systolic'] = st.number_input("Systolic (mmHg)", min_value=80.0, max_value=250.0, value=120.0, step=1.0)
     user_input_dict['Diastolic'] = st.number_input("Diastolic (mmHg)", min_value=40.0, max_value=150.0, value=80.0, step=1.0)
     user_input_dict['TyG_Index'] = st.number_input("TyG Index", min_value=5.0, max_value=15.0, value=8.0, step=0.1)

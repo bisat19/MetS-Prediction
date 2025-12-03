@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 st.title("🔬 Prediksi Sindrom Metabolik (MetS)")
-st.markdown("Aplikasi Web Sederhana Berbasis Model Stacking (RF + MLP + LR)")
+st.markdown("Aplikasi Web Berbasis Model Stacking untuk Prediksi Sindrom Metabolik (MetS)")
 
 # --- 1. DAFTAR FITUR TERPILIH ---
 SELECTED_FEATURES = [
@@ -112,12 +112,9 @@ if st.button("Prediksi Status MetS"):
     # 3. Tampilkan Hasil di KOLOM 4
     with col4:
         st.subheader("✅ Hasil Prediksi")
-        
-        # Menggunakan kontainer untuk tampilan yang lebih menonjol
         if predicted_class == 1:
-            st.success("STATUS: BERPOTENSI METABOLIK SINDROM (METS)")
+            st.info("STATUS: BERPOTENSI METABOLIK SINDROM (METS)")
             st.metric(label="Probabilitas MetS (Kelas 1)", value=f"{predicted_prob:.4f}")
-            st.balloons()
         else:
             st.info("STATUS: NON-SINDROM METABOLIK")
             st.metric(label="Probabilitas MetS (Kelas 1)", value=f"{predicted_prob:.4f}")
@@ -125,3 +122,5 @@ if st.button("Prediksi Status MetS"):
 # Footer/Catatan Kaki
 st.write("---")
 st.caption("Catatan: Prediksi ini dihasilkan oleh model Machine Learning dan bukan merupakan diagnosis medis. Selalu konsultasikan dengan profesional kesehatan.")
+st.write("---")
+st.caption("dibuat oleh Abisatya")

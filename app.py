@@ -26,7 +26,7 @@ SELECTED_FEATURES = [
 def load_models():
     """Memuat semua model dan preprocessor yang sudah di-fit."""
     # Definisikan path ke folder model
-    model_path = "model_deployment" 
+    model_path = "model_deployments" 
     
     try:
         # Muat Scaler (diasumsikan sudah di-fit HANYA pada 11 fitur)

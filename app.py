@@ -24,8 +24,7 @@ SELECTED_FEATURES = [
 @st.cache_resource
 def load_models():
     """Memuat semua model dan preprocessor yang sudah di-fit."""
-    model_path = "model_deployment" # Ganti 'model_deployments' menjadi 'model_deployment' jika itu nama folder Anda
-    
+    model_path = "model_deployments"
     try:
         scaler = joblib.load(os.path.join(model_path, 'scaler.pkl'))
         rf_model = joblib.load(os.path.join(model_path, 'rf_model.pkl'))

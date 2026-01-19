@@ -53,34 +53,36 @@ tab1, tab2, tab3 = st.tabs(["🌳 Random Forest", "🧠 MLP Network", "🔗 Stac
 with tab1:
     st.header("Prediksi Individual: Random Forest")
     data_rf = get_user_inputs("rf")
-    if st.button("Hitung Random Forest", key="btn_rf"):
+    if st.button("Prediksi Status MetS", key="btn_rf"):
         input_df = pd.DataFrame([data_rf], columns=SELECTED_FEATURES)
         X_scaled = scaler.transform(input_df.values)
         prob = rf_model.predict_proba(X_scaled)[:, 1][0]
         st.write("---")
-        st.metric("Probabilitas MetS (RF)", f"{prob:.4f}")
-        if prob > 0.5: st.error("Hasil: Positif MetS")
-        else: st.success("Hasil: Negatif MetS")
+        col_res1, col_res2 = st.columns(2)
+        col_res1.st.metric("Probabilitas MetS (RF)", f"{prob:.4f}")
+        if prob > 0.5: col_res2.st.error("Hasil: POSITIF SINDROM METABOLIK")
+        else: col_res2.st.success("Hasil: NON-SINDROM METABOLIK")
 
 # --- TAB 2: MLP ---
 with tab2:
     st.header("Prediksi Individual: MLP Network")
     data_mlp = get_user_inputs("mlp")
-    if st.button("Hitung MLP", key="btn_mlp"):
+    if st.button("Prediksi Status MetS", key="btn_mlp"):
         input_df = pd.DataFrame([data_mlp], columns=SELECTED_FEATURES)
         X_scaled = scaler.transform(input_df.values)
         prob = mlp_model.predict_proba(X_scaled)[:, 1][0]
         st.write("---")
-        st.metric("Probabilitas MetS (MLP)", f"{prob:.4f}")
-        if prob > 0.5: st.error("Hasil: Positif MetS")
-        else: st.success("Hasil: Negatif MetS")
+        col_res1, col_res2 = st.columns(2)
+        col_res1.st.metric("Probabilitas MetS (MLP)", f"{prob:.4f}")
+        if prob > 0.5: col_res2.st.error("Hasil: POSITIF SINDROM METABOLIK")
+        else: col_res2.st.success("Hasil: NON-SINDROM METABOLIK")
 
 # --- TAB 3: STACKING ---
 with tab3:
     st.header("Prediksi Kompleks: Stacking Model")
     st.info("Model ini akan menjalankan RF dan MLP secara internal sebagai basis input bagi Meta-Model.")
     data_stack = get_user_inputs("stack")
-    if st.button("Hitung Stacking", key="btn_stack"):
+    if st.button("Prediksi Status MetS", key="btn_stack"):
         input_df = pd.DataFrame([data_stack], columns=SELECTED_FEATURES)
         X_scaled = scaler.transform(input_df.values)
         
@@ -93,8 +95,8 @@ with tab3:
         st.write("---")
         col_res1, col_res2 = st.columns(2)
         col_res1.metric("Final Probabilitas (Stacking)", f"{prob:.4f}")
-        if prob > 0.5: col_res2.error("Hasil Akhir: Positif MetS")
-        else: col_res2.success("Hasil Akhir: Negatif MetS")
+        if prob > 0.5: col_res2.error("Hasil Akhir: POSITIF SINDROM METABOLIK")
+        else: col_res2.success("Hasil Akhir: NON-SINDROM METABOLIK")
 
 st.write("---")
 st.caption("Dibuat oleh Abisatya")

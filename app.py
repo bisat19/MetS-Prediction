@@ -59,9 +59,9 @@ with tab1:
         prob = rf_model.predict_proba(X_scaled)[:, 1][0]
         st.write("---")
         col_res1, col_res2 = st.columns(2)
-        col_res1.st.metric("Probabilitas MetS (RF)", f"{prob:.4f}")
-        if prob > 0.5: col_res2.st.error("Hasil: POSITIF SINDROM METABOLIK")
-        else: col_res2.st.success("Hasil: NON-SINDROM METABOLIK")
+        col_res1.metric("Probabilitas MetS (RF)", f"{prob:.4f}")
+        if prob > 0.5: col_res2.error("Hasil: POSITIF SINDROM METABOLIK")
+        else: col_res2.success("Hasil: NON-SINDROM METABOLIK")
 
 # --- TAB 2: MLP ---
 with tab2:
@@ -73,9 +73,9 @@ with tab2:
         prob = mlp_model.predict_proba(X_scaled)[:, 1][0]
         st.write("---")
         col_res1, col_res2 = st.columns(2)
-        col_res1.st.metric("Probabilitas MetS (MLP)", f"{prob:.4f}")
-        if prob > 0.5: col_res2.st.error("Hasil: POSITIF SINDROM METABOLIK")
-        else: col_res2.st.success("Hasil: NON-SINDROM METABOLIK")
+        col_res1.metric("Probabilitas MetS (MLP)", f"{prob:.4f}")
+        if prob > 0.5: col_res2.error("Hasil: POSITIF SINDROM METABOLIK")
+        else: col_res2.success("Hasil: NON-SINDROM METABOLIK")
 
 # --- TAB 3: STACKING ---
 with tab3:

@@ -131,10 +131,27 @@ def get_user_inputs():
 
 # --- 5. INPUT FORM DI LUAR TAB ---
 st.subheader("📋 Input Data Pasien")
+
+# ✅ PERBAIKAN: CSS Variable untuk mendukung Dark Mode
 st.markdown("""
-    <div style="background-color: #e8f4fd; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-    <strong>💡 Petunjuk:</strong> Isi data sesuai hasil pemeriksaan terakhir. 
-    Klik ikon <span style="color: #0068c9;">ⓘ</span> untuk melihat penjelasan setiap parameter.
+    <style>
+    .hint-box {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--primary-color);
+        /* Menggunakan warna teks standar Streamlit agar otomatis kontras */
+        color: var(--text-color); 
+        background-color: rgba(var(--primary-color-rgb), 0.15);
+        font-size: 0.95rem;
+    }
+    /* Paksa warna teks tetap terbaca jika variable gagal */
+    .hint-box strong { color: var(--text-color); }
+    </style>
+    
+    <div class="hint-box">
+        <strong>💡 Petunjuk:</strong> Isi data sesuai hasil pemeriksaan terakhir. 
+        Klik ikon <span style="color: var(--text-color); opacity: 0.8;">ⓘ</span> untuk melihat penjelasan setiap parameter.
     </div>
 """, unsafe_allow_html=True)
 
@@ -153,6 +170,64 @@ st.divider()
 # --- 6. PEMBUATAN TABS ---
 tab1, tab2, tab3 = st.tabs(["🌳 Random Forest", "🧠 MLP Network", "🔗 Stacking Model"])
 
+# --- FUNGSI HELPER UNTUK HASIL (Agar kode lebih rapi) ---
+def display_prediction_result(prob, model_name):
+    """Menampilkan hasil prediksi dengan saran yang sesuai"""
+    st.write("---")
+    col_res1, col_res2 = st.columns(2)
+    
+    with col_res1:
+        st.metric("📊 Probabilitas MetS", f"{prob:.2%}")
+        st.progress(prob)
+    
+    with col_res2:
+        if prob > 0.5: 
+            st.error("🚨 Hasil: **POSITIF** Sindrom Metabolik")
+            
+            with st.expander("🩺 Rekomendasi Kesehatan - Segera Tindak Lanjuti", expanded=True):
+                st.markdown("""
+                ### 🔴 Langkah yang Disarankan:
+                
+                **1. 🏥 Konsultasi Medis Segera**
+                - Temui dokter umum atau spesialis penyakit dalam untuk evaluasi lengkap.
+                - Bawa hasil pemeriksaan laboratorium terbaru (glukosa, lipid profil, asam urat).
+                
+                **2. 🥗 Perubahan Gaya Hidup**
+                | Area | Rekomendasi |
+                |------|-------------|
+                | 🍽️ Pola Makan | Kurangi gula, garam, lemak jenuh. Perbanyak serat. |
+                | 🚶 Aktivitas Fisik | Minimal 150 menit/minggu (jalan cepat, renang). |
+                | ⚖️ Berat Badan | Targetkan penurunan 5-10% jika overweight. |
+                
+                > ⚠️ **Penting**: Sindrom Metabolik meningkatkan risiko diabetes tipe 2 dan penyakit jantung.
+                """)
+        else: 
+            st.success("✅ Hasil: **NON-Sindrom** Metabolik")
+            
+            with st.expander("🎉 Selamat! Tips Menjaga Kesehatan Optimal", expanded=True):
+                st.markdown("""
+                ### 🟢 Pertahankan Pola Hidup Sehat Anda!
+                
+                **✨ Anda berada di jalur yang tepat!** Berikut tips untuk menjaga kondisi tetap prima:
+                
+                **1. 🛡️ Pencegahan Proaktif**
+                - Lanjutkan pola makan seimbang dengan variasi nutrisi.
+                - Cukupi tidur 7-8 jam/hari untuk pemulihan optimal.
+                
+                **2. 📊 Screening Rutin**
+                | Pemeriksaan | Frekuensi Disarankan |
+                |-------------|---------------------|
+                | Tekanan Darah | Setiap 6-12 bulan |
+                | Gula Darah Puasa | Setiap 1-2 tahun |
+                | Profil Lipid | Setiap 2-3 tahun |
+                """)
+                
+                with st.expander("📋 Checklist Harian Sehat ✨"):
+                    st.checkbox("💧 Minum air putih ≥ 2 liter")
+                    st.checkbox("🥗 Konsumsi sayur/buah di setiap makan")
+                    st.checkbox("🚶 Bergerak aktif minimal 30 menit")
+                    st.checkbox("😴 Tidur berkualitas 7-8 jam")
+
 # --- TAB 1: RANDOM FOREST ---
 with tab1:
     st.header("🌳 Prediksi: Random Forest")
@@ -163,19 +238,7 @@ with tab1:
             input_df = pd.DataFrame([user_data], columns=SELECTED_FEATURES)
             X_scaled = scaler.transform(input_df.values)
             prob = rf_model.predict_proba(X_scaled)[:, 1][0]
-            
-            st.write("---")
-            col_res1, col_res2 = st.columns(2)
-            with col_res1:
-                st.metric("📊 Probabilitas MetS", f"{prob:.2%}")
-                st.progress(prob)
-            with col_res2:
-                if prob > 0.5: 
-                    st.error("🚨 Hasil: **POSITIF** Sindrom Metabolik")
-                    st.caption("Disarankan konsultasi ke dokter untuk evaluasi lebih lanjut.")
-                else: 
-                    st.success("✅ Hasil: **NON-Sindrom** Metabolik")
-                    st.caption("Pertahankan pola hidup sehat!")
+            display_prediction_result(prob, "Random Forest")
 
 # --- TAB 2: MLP ---
 with tab2:
@@ -187,60 +250,35 @@ with tab2:
             input_df = pd.DataFrame([user_data], columns=SELECTED_FEATURES)
             X_scaled = scaler.transform(input_df.values)
             prob = mlp_model.predict_proba(X_scaled)[:, 1][0]
-            
-            st.write("---")
-            col_res1, col_res2 = st.columns(2)
-            with col_res1:
-                st.metric("📊 Probabilitas MetS", f"{prob:.2%}")
-                st.progress(prob)
-            with col_res2:
-                if prob > 0.5: 
-                    st.error("🚨 Hasil: **POSITIF** Sindrom Metabolik")
-                    st.caption("Disarankan konsultasi ke dokter untuk evaluasi lebih lanjut.")
-                else: 
-                    st.success("✅ Hasil: **NON-Sindrom** Metabolik")
-                    st.caption("Pertahankan pola hidup sehat!")
+            display_prediction_result(prob, "MLP Network")
 
 # --- TAB 3: STACKING ---
 with tab3:
     st.header("🔗 Prediksi: Stacking Ensemble Model")
-    st.info("""
-    **Bagaimana cara kerja Stacking?**  
-    Model ini menggabungkan prediksi dari Random Forest dan MLP Neural Network, 
-    kemudian diproses oleh Meta-Model untuk menghasilkan prediksi akhir yang lebih akurat.
-    """)
+    st.info("Model ini menggabungkan prediksi dari Random Forest dan MLP Neural Network.")
     
     if st.button("▶️ Hitung Prediksi", key="btn_stack", type="primary"):
         with st.spinner("🔄 Sedang memproses prediksi ensemble..."):
             input_df = pd.DataFrame([user_data], columns=SELECTED_FEATURES)
             X_scaled = scaler.transform(input_df.values)
             
-            # Alur Stacking
             rf_p = rf_model.predict_proba(X_scaled)[:, 1]
             mlp_p = mlp_model.predict_proba(X_scaled)[:, 1]
             meta_X = np.column_stack((rf_p, mlp_p))
             prob = meta_model.predict_proba(meta_X)[:, 1][0]
             
-            st.write("---")
-            # Tampilkan kontribusi masing-masing model
+            # Tampilkan kontribusi model
             st.subheader("📈 Kontribusi Model")
             col_m1, col_m2 = st.columns(2)
             col_m1.metric("🌳 Random Forest", f"{rf_p[0]:.2%}")
             col_m2.metric("🧠 MLP Network", f"{mlp_p[0]:.2%}")
             
-            st.write("---")
-            col_res1, col_res2 = st.columns(2)
-            with col_res1:
-                st.metric("🎯 Final Probabilitas", f"{prob:.2%}")
-                st.progress(prob)
-            with col_res2:
-                if prob > 0.5: 
-                    st.error("🚨 Hasil Akhir: **POSITIF** Sindrom Metabolik")
-                    st.caption("Disarankan konsultasi ke dokter untuk evaluasi lebih lanjut.")
-                else: 
-                    st.success("✅ Hasil Akhir: **NON-Sindrom** Metabolik")
-                    st.caption("Pertahankan pola hidup sehat!")
+            display_prediction_result(prob, "Stacking Ensemble")
 
 # --- FOOTER ---
 st.write("---")
-st.caption("🔬 Dibuat oleh Abisatya | Model untuk tujuan edukasi dan skrining awal. Konsultasikan hasil ke tenaga medis profesional.")
+st.warning("""
+⚠️ **Disclaimer**: Aplikasi ini hanya untuk tujuan skrining awal dan edukasi. 
+Hasil bukan pengganti diagnosis medis profesional. Selalu konsultasikan ke tenaga kesehatan berlisensi.
+""")
+st.caption("🔬 Dibuat oleh Abisatya")

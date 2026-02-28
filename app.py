@@ -102,25 +102,25 @@ def get_user_inputs():
     
     with col3:
         st.number_input(
-            "Indeks TyG (Triglyceride-Glucose) 📊", 
+            "Indeks TyG (Triglyceride-Glucose)", 
             min_value=5.0, max_value=15.0, step=0.01,
             key="TyG_Index",
             help="Indikator resistensi insulin. Dihitung dari: ln[(Trigliserida mg/dL × Glukosa mg/dL)/2]. Nilai >8.5 mengindikasikan risiko tinggi."
         )
         st.number_input(
-            "Trigliserida (mg/dL) 🩸", 
+            "Trigliserida (mg/dL)", 
             min_value=50.0, max_value=1000.0, step=1.0,
             key="newtg",
             help="Kadar lemak dalam darah. Normal: <150 mg/dL"
         )
         st.number_input(
-            "HDL - Kolesterol 'Baik' (mg/dL) 💙", 
+            "HDL - Kolesterol 'Baik' (mg/dL)", 
             min_value=10.0, max_value=200.0, step=1.0,
             key="newhdl",
             help="High-Density Lipoprotein. Semakin tinggi semakin baik. Minimal: Pria >40, Wanita >50 mg/dL"
         )
         st.number_input(
-            "Asam Urat (mg/dL) 🦴", 
+            "Asam Urat (mg/dL)", 
             min_value=1.0, max_value=15.0, step=0.1,
             key="newua",
             help="Kadar asam urat dalam darah. Normal: Pria 3.4-7.0, Wanita 2.4-6.0 mg/dL"

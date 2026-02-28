@@ -7,6 +7,11 @@ import os
 # --- PENGATURAN HALAMAN ---
 st.set_page_config(page_title="MetS Multi-Model Independent", layout="wide")
 st.title("🔬 Analisis Mandiri Sindrom Metabolik")
+st.markdown("""
+    <style>
+    .stTooltipIcon { cursor: help; }
+    </style>
+""", unsafe_allow_html=True)
 
 # --- 1. DAFTAR FITUR & MUAT MODEL ---
 SELECTED_FEATURES = [
@@ -25,7 +30,7 @@ def load_all_assets():
 
 scaler, rf_model, mlp_model, meta_model = load_all_assets()
 
-# --- 2. INISIALISASI SESSION STATE (Sekali saja di awal) ---
+# --- 2. INISIALISASI SESSION STATE ---
 DEFAULT_INPUTS = {
     'Usia': 50, 'Jenis_Kelamin': 0, 'Height': 1.65, 'Weight': 65.0,
     'Waist Measurement': 90.0, 'Systolic': 120.0, 'Diastolic': 80.0,
@@ -36,86 +41,177 @@ for key, value in DEFAULT_INPUTS.items():
     if key not in st.session_state:
         st.session_state[key] = value
 
-# --- 3. FUNGSI INPUT COMPONENT (Tanpa callback - otomatis sync via key!) ---
+# --- 3. FUNGSI HELPER UNTUK TOOLTIP ---
+def tooltip_help(text):
+    """Membuat ikon help dengan tooltip"""
+    return f"""
+    <span style="cursor: help; color: #0068c9;" title="{text}">ⓘ</span>
+    """
+
+# --- 4. FUNGSI INPUT COMPONENT ---
 def get_user_inputs():
-    """Form input dengan session_state otomatis via parameter 'key'"""
+    """Form input dengan label Bahasa Indonesia + tooltip penjelasan"""
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.number_input("Usia", 18, 100, key="Usia")
-        st.selectbox("Jenis Kelamin", [0, 1], 
-                    format_func=lambda x: "Wanita" if x == 1 else "Pria",
-                    key="Jenis_Kelamin")
-        st.number_input("Tinggi (m)", 1.0, 2.5, key="Height")
-        st.number_input("Berat (kg)", 30.0, 200.0, key="Weight")
+        st.number_input(
+            "Usia (tahun)", 
+            min_value=18, max_value=100, 
+            key="Usia",
+            help="Usia pasien dalam tahun"
+        )
+        st.selectbox(
+            "Jenis Kelamin", 
+            options=[0, 1], 
+            format_func=lambda x: "Wanita" if x == 1 else "Pria",
+            key="Jenis_Kelamin",
+            help="Pilih jenis kelamin pasien"
+        )
+        st.number_input(
+            "Tinggi Badan (m)", 
+            min_value=1.0, max_value=2.5, step=0.01,
+            key="Height",
+            help="Tinggi badan dalam meter (contoh: 1.65)"
+        )
+        st.number_input(
+            "Berat Badan (kg)", 
+            min_value=30.0, max_value=200.0, step=0.1,
+            key="Weight",
+            help="Berat badan dalam kilogram"
+        )
     
     with col2:
-        st.number_input("Lingkar Pinggang (cm)", 50.0, 150.0, key="Waist Measurement")
-        st.number_input("Systolic", 80.0, 250.0, key="Systolic")
-        st.number_input("Diastolic", 40.0, 150.0, key="Diastolic")
+        st.number_input(
+            "Lingkar Pinggang (cm)", 
+            min_value=50.0, max_value=150.0, step=0.1,
+            key="Waist Measurement",
+            help="Lingkar pinggang diukur pada titik tersempit (dalam cm)"
+        )
+        st.number_input(
+            "Tekanan Darah Sistolik (mmHg)", 
+            min_value=80.0, max_value=250.0, step=1.0,
+            key="Systolic",
+            help="Tekanan darah saat jantung berdetak (angka atas)"
+        )
+        st.number_input(
+            "Tekanan Darah Diastolik (mmHg)", 
+            min_value=40.0, max_value=150.0, step=1.0,
+            key="Diastolic",
+            help="Tekanan darah saat jantung beristirahat (angka bawah)"
+        )
     
     with col3:
-        st.number_input("TyG Index", 5.0, 15.0, key="TyG_Index")
-        st.number_input("Trigliserida", 50.0, 1000.0, key="newtg")
-        st.number_input("HDL", 10.0, 200.0, key="newhdl")
-        st.number_input("Asam Urat", 1.0, 15.0, key="newua")
+        st.number_input(
+            "Indeks TyG (Triglyceride-Glucose) 📊", 
+            min_value=5.0, max_value=15.0, step=0.01,
+            key="TyG_Index",
+            help="Indikator resistensi insulin. Dihitung dari: ln[(Trigliserida mg/dL × Glukosa mg/dL)/2]. Nilai >8.5 mengindikasikan risiko tinggi."
+        )
+        st.number_input(
+            "Trigliserida (mg/dL) 🩸", 
+            min_value=50.0, max_value=1000.0, step=1.0,
+            key="newtg",
+            help="Kadar lemak dalam darah. Normal: <150 mg/dL"
+        )
+        st.number_input(
+            "HDL - Kolesterol 'Baik' (mg/dL) 💙", 
+            min_value=10.0, max_value=200.0, step=1.0,
+            key="newhdl",
+            help="High-Density Lipoprotein. Semakin tinggi semakin baik. Minimal: Pria >40, Wanita >50 mg/dL"
+        )
+        st.number_input(
+            "Asam Urat (mg/dL) 🦴", 
+            min_value=1.0, max_value=15.0, step=0.1,
+            key="newua",
+            help="Kadar asam urat dalam darah. Normal: Pria 3.4-7.0, Wanita 2.4-6.0 mg/dL"
+        )
     
     # Ambil semua nilai dari session_state
     return {key: st.session_state[key] for key in DEFAULT_INPUTS.keys()}
 
-# --- 4. INPUT FORM DI LUAR TAB ---
+# --- 5. INPUT FORM DI LUAR TAB ---
 st.subheader("📋 Input Data Pasien")
+st.markdown("""
+    <div style="background-color: #e8f4fd; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+    <strong>💡 Petunjuk:</strong> Isi data sesuai hasil pemeriksaan terakhir. 
+    Klik ikon <span style="color: #0068c9;">ⓘ</span> untuk melihat penjelasan setiap parameter.
+    </div>
+""", unsafe_allow_html=True)
+
 user_data = get_user_inputs()
 
 # Tombol reset
-if st.button("🔄 Reset Semua Input"):
-    for key, value in DEFAULT_INPUTS.items():
-        st.session_state[key] = value
-    st.rerun()
+col_reset, col_empty = st.columns([1, 5])
+with col_reset:
+    if st.button("🔄 Reset Input"):
+        for key, value in DEFAULT_INPUTS.items():
+            st.session_state[key] = value
+        st.rerun()
 
 st.divider()
 
-# --- 5. PEMBUATAN TABS ---
+# --- 6. PEMBUATAN TABS ---
 tab1, tab2, tab3 = st.tabs(["🌳 Random Forest", "🧠 MLP Network", "🔗 Stacking Model"])
 
 # --- TAB 1: RANDOM FOREST ---
 with tab1:
-    st.header("Prediksi: Random Forest")
-    if st.button("Prediksi Status MetS", key="btn_rf"):
-        with st.spinner("Sedang memproses..."):
+    st.header("🌳 Prediksi: Random Forest")
+    st.caption("Model ensemble berbasis pohon keputusan yang robust terhadap outlier.")
+    
+    if st.button("▶️ Hitung Prediksi", key="btn_rf", type="primary"):
+        with st.spinner("🔄 Sedang memproses prediksi..."):
             input_df = pd.DataFrame([user_data], columns=SELECTED_FEATURES)
             X_scaled = scaler.transform(input_df.values)
             prob = rf_model.predict_proba(X_scaled)[:, 1][0]
+            
             st.write("---")
             col_res1, col_res2 = st.columns(2)
-            col_res1.metric("Probabilitas MetS (RF)", f"{prob:.4f}")
-            if prob > 0.5: 
-                col_res2.error("Hasil: POSITIF SINDROM METABOLIK")
-            else: 
-                col_res2.success("Hasil: NON-SINDROM METABOLIK")
+            with col_res1:
+                st.metric("📊 Probabilitas MetS", f"{prob:.2%}")
+                st.progress(prob)
+            with col_res2:
+                if prob > 0.5: 
+                    st.error("🚨 Hasil: **POSITIF** Sindrom Metabolik")
+                    st.caption("Disarankan konsultasi ke dokter untuk evaluasi lebih lanjut.")
+                else: 
+                    st.success("✅ Hasil: **NON-Sindrom** Metabolik")
+                    st.caption("Pertahankan pola hidup sehat!")
 
 # --- TAB 2: MLP ---
 with tab2:
-    st.header("Prediksi: MLP Network")
-    if st.button("Prediksi Status MetS", key="btn_mlp"):
-        with st.spinner("Sedang memproses..."):
+    st.header("🧠 Prediksi: MLP Neural Network")
+    st.caption("Model deep learning dengan arsitektur multi-layer perceptron.")
+    
+    if st.button("▶️ Hitung Prediksi", key="btn_mlp", type="primary"):
+        with st.spinner("🔄 Sedang memproses prediksi..."):
             input_df = pd.DataFrame([user_data], columns=SELECTED_FEATURES)
             X_scaled = scaler.transform(input_df.values)
             prob = mlp_model.predict_proba(X_scaled)[:, 1][0]
+            
             st.write("---")
             col_res1, col_res2 = st.columns(2)
-            col_res1.metric("Probabilitas MetS (MLP)", f"{prob:.4f}")
-            if prob > 0.5: 
-                col_res2.error("Hasil: POSITIF SINDROM METABOLIK")
-            else: 
-                col_res2.success("Hasil: NON-SINDROM METABOLIK")
+            with col_res1:
+                st.metric("📊 Probabilitas MetS", f"{prob:.2%}")
+                st.progress(prob)
+            with col_res2:
+                if prob > 0.5: 
+                    st.error("🚨 Hasil: **POSITIF** Sindrom Metabolik")
+                    st.caption("Disarankan konsultasi ke dokter untuk evaluasi lebih lanjut.")
+                else: 
+                    st.success("✅ Hasil: **NON-Sindrom** Metabolik")
+                    st.caption("Pertahankan pola hidup sehat!")
 
 # --- TAB 3: STACKING ---
 with tab3:
-    st.header("Prediksi: Stacking Model")
-    st.info("Model ini akan menjalankan RF dan MLP secara internal sebagai basis input bagi Meta-Model.")
-    if st.button("Prediksi Status MetS", key="btn_stack"):
-        with st.spinner("Sedang memproses..."):
+    st.header("🔗 Prediksi: Stacking Ensemble Model")
+    st.info("""
+    **Bagaimana cara kerja Stacking?**  
+    Model ini menggabungkan prediksi dari Random Forest dan MLP Neural Network, 
+    kemudian diproses oleh Meta-Model untuk menghasilkan prediksi akhir yang lebih akurat.
+    """)
+    
+    if st.button("▶️ Hitung Prediksi", key="btn_stack", type="primary"):
+        with st.spinner("🔄 Sedang memproses prediksi ensemble..."):
             input_df = pd.DataFrame([user_data], columns=SELECTED_FEATURES)
             X_scaled = scaler.transform(input_df.values)
             
@@ -126,12 +222,25 @@ with tab3:
             prob = meta_model.predict_proba(meta_X)[:, 1][0]
             
             st.write("---")
+            # Tampilkan kontribusi masing-masing model
+            st.subheader("📈 Kontribusi Model")
+            col_m1, col_m2 = st.columns(2)
+            col_m1.metric("🌳 Random Forest", f"{rf_p[0]:.2%}")
+            col_m2.metric("🧠 MLP Network", f"{mlp_p[0]:.2%}")
+            
+            st.write("---")
             col_res1, col_res2 = st.columns(2)
-            col_res1.metric("Final Probabilitas (Stacking)", f"{prob:.4f}")
-            if prob > 0.5: 
-                col_res2.error("Hasil Akhir: POSITIF SINDROM METABOLIK")
-            else: 
-                col_res2.success("Hasil Akhir: NON-SINDROM METABOLIK")
+            with col_res1:
+                st.metric("🎯 Final Probabilitas", f"{prob:.2%}")
+                st.progress(prob)
+            with col_res2:
+                if prob > 0.5: 
+                    st.error("🚨 Hasil Akhir: **POSITIF** Sindrom Metabolik")
+                    st.caption("Disarankan konsultasi ke dokter untuk evaluasi lebih lanjut.")
+                else: 
+                    st.success("✅ Hasil Akhir: **NON-Sindrom** Metabolik")
+                    st.caption("Pertahankan pola hidup sehat!")
 
+# --- FOOTER ---
 st.write("---")
-st.caption("Dibuat oleh Abisatya")
+st.caption("🔬 Dibuat oleh Abisatya | Model untuk tujuan edukasi dan skrining awal. Konsultasikan hasil ke tenaga medis profesional.")
